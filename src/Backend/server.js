@@ -42,6 +42,13 @@ async function seedDefaultCategories() {
     console.log("✅ Default categories added");
   }
 }
+const budgetSchema = new mongoose.Schema({
+  category: String,
+  month: String, // Format: '2025-07'
+  amount: Number,
+});
+const Budget = mongoose.model("Budget", budgetSchema);
+
 
 // ✅ Only start server after DB is connected
 mongoose
@@ -88,6 +95,23 @@ mongoose
       await newCategory.save();
       res.status(201).json(newCategory);
     });
+    // Add or update budget
+app.post("/api/budgets", async (req, res) => {
+  const { category, month, amount } = req.body;
+  const budget = await Budget.findOneAndUpdate(
+    { category, month },
+    { amount },
+    { upsert: true, new: true }
+  );
+  res.status(201).json(budget);
+});
+
+// Get all budgets
+app.get("/api/budgets", async (req, res) => {
+  const budgets = await Budget.find();
+  res.json(budgets);
+});
+
 
     // ✅ Start server after DB + data is ready
     const PORT = process.env.PORT || 5000;
